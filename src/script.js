@@ -9,7 +9,7 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
  */
 // Debug
 const gui = new dat.GUI({
-    width: 400
+  width: 400,
 })
 
 // Canvas
@@ -32,44 +32,67 @@ dracoLoader.setDecoderPath('draco/')
 const gltfLoader = new GLTFLoader()
 gltfLoader.setDRACOLoader(dracoLoader)
 
-/**
- * Object
- */
-const cube = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshBasicMaterial()
-)
+// Textures
+const bakedTextures = textureLoader.load('baked.jpg')
+bakedTextures.flipY = false
+bakedTextures.encoding = THREE.sRGBEncoding
+// Model
 
-scene.add(cube)
+const bakedMaterial = new THREE.MeshBasicMaterial({ map: bakedTextures })
+
+// PortalLightMaterial
+const portalLightMaterial = new THREE.MeshBasicMaterial({ color: 0x7EFF5F })
+// Lights material
+const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xFF4F21 })
+
+gltfLoader.load('portal.glb', (gltf) => {
+
+    
+  const bakedMesh = gltf.scene.children.find(child => child.name === 'baked')
+  const portalLightMesh = gltf.scene.children.find(child => child.name === 'portalLight')
+  const poleLightAMesh = gltf.scene.children.find(child => child.name === 'poleLightA')
+  const poleLightBMesh = gltf.scene.children.find(child => child.name === 'poleLightB')
+
+  bakedMesh.material = bakedMaterial
+  portalLightMesh.material = portalLightMaterial
+  poleLightAMesh.material = lightMaterial
+  poleLightBMesh.material = lightMaterial
+
+  scene.add(gltf.scene)
+})
 
 /**
  * Sizes
  */
 const sizes = {
-    width: window.innerWidth,
-    height: window.innerHeight
+  width: window.innerWidth,
+  height: window.innerHeight,
 }
 
-window.addEventListener('resize', () =>
-{
-    // Update sizes
-    sizes.width = window.innerWidth
-    sizes.height = window.innerHeight
+window.addEventListener('resize', () => {
+  // Update sizes
+  sizes.width = window.innerWidth
+  sizes.height = window.innerHeight
 
-    // Update camera
-    camera.aspect = sizes.width / sizes.height
-    camera.updateProjectionMatrix()
+  // Update camera
+  camera.aspect = sizes.width / sizes.height
+  camera.updateProjectionMatrix()
 
-    // Update renderer
-    renderer.setSize(sizes.width, sizes.height)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  // Update renderer
+  renderer.setSize(sizes.width, sizes.height)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 })
 
 /**
  * Camera
  */
 // Base camera
-const camera = new THREE.PerspectiveCamera(45, sizes.width / sizes.height, 0.1, 100)
+const camera = new THREE.PerspectiveCamera(
+  45,
+  sizes.width / sizes.height,
+  0.1,
+  100,
+)
 camera.position.x = 4
 camera.position.y = 2
 camera.position.z = 4
@@ -83,9 +106,10 @@ controls.enableDamping = true
  * Renderer
  */
 const renderer = new THREE.WebGLRenderer({
-    canvas: canvas,
-    antialias: true
+  canvas: canvas,
+  antialias: true,
 })
+renderer.outputEncoding = THREE.sRGBEncoding
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
@@ -94,18 +118,17 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
  */
 const clock = new THREE.Clock()
 
-const tick = () =>
-{
-    const elapsedTime = clock.getElapsedTime()
+const tick = () => {
+  const elapsedTime = clock.getElapsedTime()
 
-    // Update controls
-    controls.update()
+  // Update controls
+  controls.update()
 
-    // Render
-    renderer.render(scene, camera)
+  // Render
+  renderer.render(scene, camera)
 
-    // Call tick again on the next frame
-    window.requestAnimationFrame(tick)
+  // Call tick again on the next frame
+  window.requestAnimationFrame(tick)
 }
 
 tick()
